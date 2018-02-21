@@ -4,17 +4,17 @@
   Image Component Library
 </h1>
 
-[![Version](https://img.shields.io/badge/version-10.0.0-brightgreen.svg)](https://github.com/iclcv/icl)
+[![Version](https://img.shields.io/badge/version-10.0.1-brightgreen.svg)](https://github.com/iclcv/icl)
 [![Build Travis](https://travis-ci.org/iclcv/icl.svg?branch=master)](https://travis-ci.org/iclcv/icl)
 [![Build AppVeyor](https://ci.appveyor.com/api/projects/status/github/iclcv/icl?branch=master&svg=true)](https://ci.appveyor.com/project/aleneum/icl)
-[![Commits](https://img.shields.io/github/commits-since/iclcv/icl/latest.svg)](https://github.com/iclcv/icl/compare/9.13.0...master)
+[![Commits](https://img.shields.io/github/commits-since/iclcv/icl/latest.svg)](https://github.com/iclcv/icl/compare/10.0.0...master)
 [![License](https://img.shields.io/github/license/iclcv/icl.svg)](LICENSE.LGPL)
 
 ## Table of Contents
 - [About ICL](#about-icl)
 - [Installation](#installation)
-  - [Ubuntu packages](#ubuntu packages)
-  - [Homebrew Recipes (OSX)](#homebew-recipes)
+  - [Ubuntu packages](#ubuntu-packages)
+  - [Homebrew Recipes (OSX)](#homebrew-recipes)
   - [Windows Installers](#windows-installers)
   - [Packaging Status](#packaging-status)
   - [Building from source (Ubuntu)](#building-from-source-ubuntu)
@@ -66,13 +66,14 @@ The ICL build is divided into four packages:
 * `icl-doc` - ICL sphinx manual and api documentation
 * `icl-tools` - ICL Applications
 
-Currently, we provide packages for the Ubuntu releases `trusty` and `xenial`.
-The packages are built with [PCL](http://pointclouds.org/).
-Users of `trusty` need to install this library before ICL packages can be installed. As described [here](http://pointclouds.org/downloads/linux.html), it is possible to get this dependency from another PPA:
+Currently, we provide packages for the Ubuntu releases `trusty`, `xenial` and `artful`.
+The packages are built with [PCL](http://pointclouds.org/) features enabled.
+Users of `trusty` need to add a third party PPA to their system as described [here](http://pointclouds.org/downloads/linux.html):
 
 ```bash
 sudo add-apt-repository ppa:v-launchpad-jochen-sprickerhof-de/pcl
 sudo apt-get update
+# installing icl-core will automatically pull this dependency
 sudo apt-get install libpcl-all
 ```
 ### Homebrew Recipes
@@ -102,9 +103,9 @@ Prebuilt packages can be obtained/installed from the following channels:
 
 |   OS    | Channel | Target |
 |:--------|:--------|:-------|
-| Ubuntu  | [Launchpad][url-launchpad] | `trusty`, `xenial` |
+| Ubuntu  | [Launchpad][url-launchpad] | `trusty`, `xenial`, `artful` |
 | OSX     | [Homebrew][url-homebrew] | |
-| Windows | MSI ([Win64][url-msi-x86]/[Win32][url-msi-x86]) | Visual Studio 2017 |
+| Windows | MSI ([Win64][url-msi-x64]/[Win32][url-msi-x86]) | Visual Studio 2017 |
 
 These distributions have been built with the following features enabled:
 
@@ -137,8 +138,9 @@ These distributions have been built with the following features enabled:
 
 [url-launchpad]: https://launchpad.net/~iclcv/+archive/ubuntu/icl/
 [url-homebrew]: https://github.com/iclcv/homebrew-formulas
-[url-msi-x86]: https://ci.appveyor.com/api/projects/aleneum/icl/artifacts/build/_CPack_Packages/win64/WIX/icl-10.0.0-x64-1911.msi?job=Environment%3A%20platform%3Dx64%2C%20OPENCV%3D-DBUILD_WITH_OPENCV%3DON%20-DOPENCV_ROOT%3DC%3A%5Ctools%5Copencv%5Cbuild%20-DOpenCV_RUNTIME%3Dvc14%2C%20CMAKE_GENERATOR%3DVisual%20Studio%2015%20Win64%2C%20QT_ROOT%3DC%3A%5CQt%5C5.9.1%5Cmsvc2017_64
-[url-msi-x64]: https://ci.appveyor.com/api/projects/aleneum/icl/artifacts/build/_CPack_Packages/win32/WIX/icl-10.0.0-x86-1911.msi?job=Environment%3A%20platform%3Dx86%2C%20OPENCV%3D%2C%20CMAKE_GENERATOR%3DVisual%20Studio%2015%2C%20QT_ROOT%3DC%3A%5CQt%5C5.9.1%5Cmsvc2015
+[url-msi-x86]: https://ci.appveyor.com/api/projects/aleneum/icl/artifacts/build/_CPack_Packages/win32/WIX/icl-10.0.1-x86-1911.msi?branch=master&job=Environment%3A%20platform%3Dx86%2C%20OPENCV%3D%2C%20CMAKE_GENERATOR%3DVisual%20Studio%2015%2C%20QT_ROOT%3DC%3A%5CQt%5C%25QT_VERSION%25%5Cmsvc2015
+[url-msi-x64]: https://ci.appveyor.com/api/projects/aleneum/icl/artifacts/build/_CPack_Packages/win64/WIX/icl-10.0.1-x64-1911.msi?branch=master&job=Environment%3A%20platform%3Dx64%2C%20OPENCV%3D-DBUILD_WITH_OPENCV%3DON%20-DOPENCV_ROOT%3DC%3A%5Ctools%5Copencv%5Cbuild%20-DOpenCV_RUNTIME%3Dvc14%2C%20CMAKE_GENERATOR%3DVisual%20Studio%2015%20Win64%2C%20QT_ROOT%3DC%3A%5CQt%5C%25QT_VERSION%25%5Cmsvc2017_64
+
 
 ### <a name="building-from-source-ubuntu"></a> Building from source (Ubuntu)
 To build the minimal version of ICL, the following packages are **mandatory**:
@@ -262,6 +264,63 @@ Build doc examples
 We **strongly** recommend to have at least Qt support when building ICL.
 But there is more! Please refer to the documentation of [optional features](http://www.iclcv.org/install/install-linux.html#optional-dependencies)
 for a complete list which includes Xine, Kinect 2, SwissRanger and more.
+
+### Running tests and coverage
+
+To run tests, ICL needs to be configured with `-DBUILD_TESTS=ON`.
+This will create new test targets for each ICL module an automatically execute them after they have been built with `make`.
+Test build and execution can also be triggered manually.
+The individual test targets will be build with `make tests`.
+To run the tests `make test` has to be executed.
+
+```
+$ make tests # build ICL and test targets
+[ 10%] Built target ICLUtils
+[...]
+[100%] Built target tests_iclcore
+[100%] Built target tests_iclfilter
+[100%] Built target tests_iclio
+$ make test # run the tests
+Running tests...
+Test project /.../build
+      Start  1: tests_iclutils
+ 1/17 Test  #1: tests_iclutils ..........................   Passed    0.04 sec
+ [...]
+      Start 17: tests_iclmarkers
+17/17 Test #17: tests_iclmarkers ........................   Passed    0.33 sec
+
+100% tests passed, 0 tests failed out of 17
+
+Total Test time (real) =   2.01 sec
+```
+
+Tests can also be run individually:
+
+```
+$ build/ICLMath/tests_iclmath 
+[==========] Running 8 tests from 1 test case.
+[----------] Global test environment set-up.
+[----------] 8 tests from DynMatrixTest
+[ RUN      ] DynMatrixTest.EmptyConstructor
+[       OK ] DynMatrixTest.EmptyConstructor (0 ms)
+[   ....   ]
+[ RUN      ] DynMatrixTest.ColumnOp
+[       OK ] DynMatrixTest.ColumnOp (0 ms)
+[----------] 8 tests from DynMatrixTest (3 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test case ran. (3 ms total)
+[  PASSED  ] 8 tests.
+```
+
+Coverage targets can be build individually or for the whole library:
+
+```
+$ make coverage_iclmath # basic pattern is coverage_<icl_module_name>
+$ make coverage # builds all coverage targets but will take some time
+```
+
+Note that coverage results may be inaccurate due to tracking obstacles related to macros and inline functions.
 
 ## Questions, feedback, issues or feature requests?
 

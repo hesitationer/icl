@@ -30,54 +30,54 @@
 
 SET(SOURCES src/ICLMath/DynMatrix.cpp
             src/ICLMath/DynMatrixUtils.cpp
-	    src/ICLMath/FFTUtils.cpp
-	    src/ICLMath/FixedMatrix.cpp
-	    src/ICLMath/GraphCutter.cpp
-	    src/ICLMath/Homography2D.cpp
-	    src/ICLMath/KDTree.cpp
-	    src/ICLMath/LevenbergMarquardtFitter.cpp
-	    src/ICLMath/LLM.cpp
-	    src/ICLMath/PolynomialRegression.cpp
-	    src/ICLMath/SimplexOptimizer.cpp
-	    src/ICLMath/SOM.cpp
-	    src/ICLMath/StochasticOptimizer.cpp
-	    src/ICLMath/StraightLine2D.cpp
-	    src/ICLMath/EigenICLConverter.cpp
+            src/ICLMath/FFTUtils.cpp
+            src/ICLMath/FixedMatrix.cpp
+            src/ICLMath/GraphCutter.cpp
+            src/ICLMath/Homography2D.cpp
+            src/ICLMath/KDTree.cpp
+            src/ICLMath/LevenbergMarquardtFitter.cpp
+            src/ICLMath/LLM.cpp
+            src/ICLMath/PolynomialRegression.cpp
+            src/ICLMath/SimplexOptimizer.cpp
+            src/ICLMath/SOM.cpp
+            src/ICLMath/StochasticOptimizer.cpp
+            src/ICLMath/StraightLine2D.cpp
+            src/ICLMath/EigenICLConverter.cpp
             src/ICLMath/HomogeneousMath.cpp
             src/ICLMath/Projective4PointTransform.cpp)
 
 SET(HEADERS src/ICLMath/DynMatrix.h
             src/ICLMath/DynMatrixUtils.h
-	    src/ICLMath/DynVector.h
-	    src/ICLMath/FFTException.h
-	    src/ICLMath/FFTUtils.h
-	    src/ICLMath/FixedMatrix.h
-	    src/ICLMath/GraphCutter.h
-	    src/ICLMath/FixedVector.h
-	    src/ICLMath/Homography2D.h
-	    src/ICLMath/KDTree.h
-	    src/ICLMath/KMeans.h
-	    src/ICLMath/LeastSquareModelFitting2D.h
-	    src/ICLMath/LeastSquareModelFitting.h
-	    src/ICLMath/LevenbergMarquardtFitter.h
-	    src/ICLMath/LinearTransform1D.h
-	    src/ICLMath/LLM.h
-	    src/ICLMath/MathFunctions.h
-	    src/ICLMath/Math.h
-	    src/ICLMath/MatrixSubRectIterator.h
-	    src/ICLMath/Octree.h
-	    src/ICLMath/PCLKdtree.h
-	    src/ICLMath/PCLOctree.h
-	    src/ICLMath/PolynomialRegression.h
-	    src/ICLMath/PolynomialSolver.h
-	    src/ICLMath/QuadTree.h
-	    src/ICLMath/RansacFitter.h
-	    src/ICLMath/SimplexOptimizer.h
-	    src/ICLMath/SOM2D.h
-	    src/ICLMath/SOM.h
-	    src/ICLMath/StochasticOptimizer.h
-	    src/ICLMath/StraightLine2D.h
-	    src/ICLMath/EigenICLConverter.h
+            src/ICLMath/DynVector.h
+            src/ICLMath/FFTException.h
+            src/ICLMath/FFTUtils.h
+            src/ICLMath/FixedMatrix.h
+            src/ICLMath/GraphCutter.h
+            src/ICLMath/FixedVector.h
+            src/ICLMath/Homography2D.h
+            src/ICLMath/KDTree.h
+            src/ICLMath/KMeans.h
+            src/ICLMath/LeastSquareModelFitting2D.h
+            src/ICLMath/LeastSquareModelFitting.h
+            src/ICLMath/LevenbergMarquardtFitter.h
+            src/ICLMath/LinearTransform1D.h
+            src/ICLMath/LLM.h
+            src/ICLMath/MathFunctions.h
+            src/ICLMath/Math.h
+            src/ICLMath/MatrixSubRectIterator.h
+            src/ICLMath/Octree.h
+            src/ICLMath/PCLKdtree.h
+            src/ICLMath/PCLOctree.h
+            src/ICLMath/PolynomialRegression.h
+            src/ICLMath/PolynomialSolver.h
+            src/ICLMath/QuadTree.h
+            src/ICLMath/RansacFitter.h
+            src/ICLMath/SimplexOptimizer.h
+            src/ICLMath/SOM2D.h
+            src/ICLMath/SOM.h
+            src/ICLMath/StochasticOptimizer.h
+            src/ICLMath/StraightLine2D.h
+            src/ICLMath/EigenICLConverter.h
             src/ICLMath/HomogeneousMath.h
             src/ICLMath/Projective4PointTransform.h)
 
@@ -128,3 +128,11 @@ LIST(APPEND PROCESSED_ICL_LIBS "ICLMath")
 CREATE_PKGCONFIG(NAME ICLMath
                  LIBRARY_DEPS ${ICLMath_3RDPARTY_LIBRARIES}
                  PKGCONFIG_DEPS ICLUtils-${SO_VERSION})
+
+IF(BUILD_TESTS)
+  CONFIGURE_GTEST(ICLMath ${CMAKE_CURRENT_SOURCE_DIR})
+  # In case we want to upload to coveralls later
+  # FILE(GLOB TEST_FILES src/ICLMath/*.[cpp,h])
+  # message(STATUS "##*()&**()FUYIYFH ${TEST_FILES}")
+  # coveralls_setup(${TEST_FILES} OFF)
+ENDIF(BUILD_TESTS)

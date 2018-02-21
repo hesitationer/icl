@@ -38,7 +38,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 # Version information
 SET(ICL_VERSION_MAJOR "10" CACHE STRING "Major project version part")
 SET(ICL_VERSION_MINOR "0" CACHE STRING "Minor project version part")
-SET(ICL_VERSION_PATCH "0" CACHE STRING "Patch project version part")
+SET(ICL_VERSION_PATCH "1" CACHE STRING "Patch project version part")
 SET(PROJECT_VERSION "${ICL_VERSION_MAJOR}.${ICL_VERSION_MINOR}.${ICL_VERSION_PATCH}")
 
 # Since version 3.0.2 CMake warns about CMP0048 policy which should be
@@ -61,15 +61,9 @@ INCLUDE(FindSSE)
 
 SET(ICL_FILE_NAME_COMPONENT_DIR PATH)
 SET(CMAKE_CXX_STANDARD 11)
-
-IF(APPLE)
-  SET(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
-  SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
-ELSE(APPLE)
-  SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-ENDIF()
-
+SET(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # ---- build type (debug/release) and opptions
 IF(WIN32)
@@ -100,12 +94,16 @@ OPTION(ENABLE_OPENMP_BUILD_OPTION "Decide whether to use -fopenmp optimization f
 #endif()
 
 IF(NOT CMAKE_BUILD_TYPE)
-  MESSAGE(STATUS "No Specific build type specified: using Release")
-  SET(CMAKE_BUILD_TYPE "Release")
+  IF(BUILD_TESTS)
+    MESSAGE(STATUS "No build type specified: Using Debug for tests")
+    SET(CMAKE_BUILD_TYPE "Debug")
+  ELSE()
+    MESSAGE(STATUS "No build type specified: Using Release")
+    SET(CMAKE_BUILD_TYPE "Release")
+  ENDIF()
 ENDIF()
 
 IF(MSVC)
-
   # Disable some warnings
   SET(ICL_COMPILER_FLAGS "/D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS")
   SET(ICL_COMPILER_FLAGS "${ICL_COMPILER_FLAGS} /wd4201 /wd4244 /wd4251 /wd4275 /wd4290 /wd4510 /wd4514 /wd4610 /wd4710 /wd4711 /wd4800 /wd4820")
@@ -215,6 +213,7 @@ OPTION(DISABLE_SSSE3 "Disables SSSE3 support, even if found on the current machi
 OPTION(BUILD_EXAMPLES "Decide if examples shall be build or not" OFF)
 OPTION(BUILD_DEMOS "Decide if demos shall be build or not" OFF)
 OPTION(BUILD_APPS "Decide if applications shall be build or not" OFF)
+OPTION(BUILD_TESTS "Decide whether tests should be build" OFF)
 SET(BUILD_REDIST OFF CACHE STRING "Enable redistribution workflow")
 SET_PROPERTY(CACHE BUILD_REDIST PROPERTY STRINGS OFF "DEB" "WIX")
 
@@ -223,6 +222,66 @@ SET_PROPERTY(CACHE BUILD_REDIST PROPERTY STRINGS OFF "DEB" "WIX")
 IF(NOT BUILD_REDIST STREQUAL OFF)
   ADD_SUBDIRECTORY(packaging)
 ENDIF(NOT BUILD_REDIST STREQUAL OFF)
+
+IF(BUILD_TESTS)
+
+  # integrate local google test build as suggested in
+  # https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
+  IF(CMAKE_VERSION VERSION_LESS 3.10.0)
+    MESSAGE(FATAL_ERROR "For testing cmake version 3.10 or higher is required")
+  ENDIF(CMAKE_VERSION VERSION_LESS 3.10.0)
+
+  configure_file(${CMAKE_SOURCE_DIR}/scripts/CMakeLists.txt.in googletest-download/CMakeLists.txt)
+  execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+  if(result)
+    message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+  endif()
+  execute_process(COMMAND ${CMAKE_COMMAND} --build .
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+  if(result)
+    message(FATAL_ERROR "Build step for googletest failed: ${result}")
+  endif()
+
+  # Prevent overriding the parent project's compiler/linker
+  # settings on Windows
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+  # Add googletest directly to our build. This defines
+  # the gtest and gtest_main targets.
+  add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
+                   ${CMAKE_BINARY_DIR}/googletest-build
+                   EXCLUDE_FROM_ALL)
+
+  # The gtest/gtest_main targets carry header search path
+  # dependencies automatically when using CMake 2.8.11 or
+  # later. Otherwise we have to add them here ourselves.
+  if (CMAKE_VERSION VERSION_LESS 2.8.11)
+    include_directories("${gtest_SOURCE_DIR}/include")
+  endif()
+
+  include(GoogleTest)
+  enable_testing()
+  add_custom_target(tests)
+
+  include(CodeCoverage)
+  APPEND_COVERAGE_COMPILER_FLAGS()
+  # --coverage -fno-inline -fno-inline-small-functions -fno-default-inline
+  add_definitions(-fno-inline)
+  set(COVERAGE_EXCLUDES '/Applications/*' '/usr/*')
+  add_custom_target(coverage)
+
+  # run tests automatically after build
+  add_custom_target(run-test
+      ALL
+      DEPENDS tests 
+      COMMAND ${CMAKE_COMMAND} --build . --target test)
+
+  # # In case we want to upload coverage to coveralls at some point
+  # include(Coveralls)
+ENDIF(BUILD_TESTS)
 
 # ---- Dependency handling ----
 INCLUDE(ICLFindPackage)
@@ -246,8 +305,10 @@ IF(WIN32)
 ELSEIF(APPLE)
   SET(ARCH_DEPENDENT_INCLUDE_PATHS "")
   SET(PKG_SEARCH_PATHS "/usr;/usr/local")
+  LIST(APPEND CMAKE_PREFIX_PATH "/usr;/usr/local")
 ELSE(WIN32)
   SET(PKG_SEARCH_PATHS "/usr;/usr/local")
+  LIST(APPEND CMAKE_PREFIX_PATH "/usr;/usr/local")
   IF(ICL_64BIT)
     SET(ARCH_DEPENDENT_LIB_PATHS "lib/x86_64-linux-gnu;lib/intel64")
     SET(ARCH_DEPENDENT_INCLUDE_PATHS "include/x86_64-linux-gnu")
@@ -807,7 +868,7 @@ IF(BUILD_WITH_RST)
 
   IF(RST_FOUND)
     set(HAVE_ALL_PROTOS TRUE)
-    foreach(proto rst/math/Vec3DFloat.proto rst/geometry/PolygonalPatch3D.proto rst/geometry/Primitive3DFloatSet.proto)
+    foreach(proto rst/math/Vec3DFloat.proto rst/geometry/PolygonalPatch3D.proto)
       LIST(FIND STABLE_PROTOS_REL proto/stable/${proto} _HAVE_STABLE_PROTO)
       LIST(FIND SANDBOX_PROTOS_REL proto/sandbox/${proto} _HAVE_SANDBOX_PROTO)
       if((_HAVE_STABLE_PROTO LESS 0) AND (_HAVE_SANDBOX_PROTO LESS 0))
