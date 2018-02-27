@@ -224,13 +224,9 @@ IF(NOT BUILD_REDIST STREQUAL OFF)
 ENDIF(NOT BUILD_REDIST STREQUAL OFF)
 
 IF(BUILD_TESTS)
-
+  cmake_policy(SET CMP0057 NEW)
   # integrate local google test build as suggested in
   # https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
-  IF(CMAKE_VERSION VERSION_LESS 3.10.0)
-    MESSAGE(FATAL_ERROR "For testing cmake version 3.10 or higher is required")
-  ENDIF(CMAKE_VERSION VERSION_LESS 3.10.0)
-
   configure_file(${CMAKE_SOURCE_DIR}/scripts/CMakeLists.txt.in googletest-download/CMakeLists.txt)
   execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
     RESULT_VARIABLE result
