@@ -421,14 +421,30 @@ function(CONFIGURE_GTEST library_name library_root)
   set(TEST_TARGET_NAME tests_${library_lower})
   file(GLOB TEST_FILES "${library_root}/test/test-*.cpp")
   if(TEST_FILES)
+#  set(EPATH "PATH=\
+#\\build\\ICLIO\\Debug;\
+#\\build\\ICLUtils\\Debug;\
+#\\icl\\build\\ICLMath\\Debug;\
+#\\icl\\build\\ICLGeom\\Debug;\
+#\\icl\\build\\ICLCV\\Debug;\
+#\\icl\\build\\ICLFilter\\Debug;\
+#\\build\\ICLCore\\Debug;\
+#\\pthreads\\Pre-built.2\\dll\\x64;\
+#$ENV{PATH}")
+#      STRING(REPLACE "\\;" ";" EPATH "${EPATH}")  
+#      string(REPLACE ";" "\\\;" EPATH "${EPATH}")
+
     message(STATUS "${TEST_TARGET_NAME}: ${TEST_FILES}")
     add_executable(${TEST_TARGET_NAME} ${TEST_FILES})
     target_link_libraries(${TEST_TARGET_NAME} gtest_main ${library_name})
-    gtest_discover_tests(${TEST_TARGET_NAME} TEST_PREFIX ${library_lower})
+    gtest_add_tests(TARGET ${TEST_TARGET_NAME}
+                    TEST_LIST LIST_OF_TESTS)
+#    set_tests_properties(${LIST_OF_TESTS} PROPERTIES ENVIRONMENT ${EPATH})
     add_dependencies(tests ${TEST_TARGET_NAME})
-    SETUP_TARGET_FOR_COVERAGE(NAME coverage_${library_lower}
-                              EXECUTABLE ${CMAKE_BINARY_DIR}/${library_name}/${TEST_TARGET_NAME})
-    add_dependencies(coverage coverage_${library_lower})
-    add_test(NAME ${TEST_TARGET_NAME} COMMAND ${CMAKE_BINARY_DIR}/${library_name}/${TEST_TARGET_NAME})
-  endif()
+
+    #SETUP_TARGET_FOR_COVERAGE(NAME coverage_${library_lower}
+    #                          EXECUTABLE ${CMAKE_BINARY_DIR}/${library_name}/${TEST_TARGET_NAME})
+    #add_dependencies(coverage coverage_${library_lower})
+    #add_test(NAME ${TEST_TARGET_NAME} COMMAND ${CMAKE_BINARY_DIR}/${library_name}/${TEST_TARGET_NAME})
+    endif()
 endfunction()
