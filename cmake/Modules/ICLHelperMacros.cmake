@@ -417,29 +417,42 @@ function(CREATE_CL_HEADER file_in file_out kernel_source_name namespace_name)
 endfunction()
 
 function(CONFIGURE_GTEST library_name library_root)
+
   string(TOLOWER ${library_name} library_lower)
   set(TEST_TARGET_NAME tests_${library_lower})
   file(GLOB TEST_FILES "${library_root}/test/test-*.cpp")
   if(TEST_FILES)
-#  set(EPATH "PATH=\
-#\\build\\ICLIO\\Debug;\
-#\\build\\ICLUtils\\Debug;\
-#\\icl\\build\\ICLMath\\Debug;\
-#\\icl\\build\\ICLGeom\\Debug;\
-#\\icl\\build\\ICLCV\\Debug;\
-#\\icl\\build\\ICLFilter\\Debug;\
-#\\build\\ICLCore\\Debug;\
-#\\pthreads\\Pre-built.2\\dll\\x64;\
-#$ENV{PATH}")
-#      STRING(REPLACE "\\;" ";" EPATH "${EPATH}")  
-#      string(REPLACE ";" "\\\;" EPATH "${EPATH}")
-
     message(STATUS "${TEST_TARGET_NAME}: ${TEST_FILES}")
     add_executable(${TEST_TARGET_NAME} ${TEST_FILES})
     target_link_libraries(${TEST_TARGET_NAME} gtest_main ${library_name})
-    gtest_add_tests(TARGET ${TEST_TARGET_NAME}
-                    TEST_LIST LIST_OF_TESTS)
-#    set_tests_properties(${LIST_OF_TESTS} PROPERTIES ENVIRONMENT ${EPATH})
+
+    # on Windows, we need to make sure that all build paths for dlls are part of the
+    # test paths
+    if(WIN32) 
+      set(TEST_PATH "PATH=\
+${CMAKE_BINARY_DIR}/ICLMath/${CMAKE_BUILD_TYPE};\
+${CMAKE_BINARY_DIR}/ICLCore/${CMAKE_BUILD_TYPE};\
+${CMAKE_BINARY_DIR}/ICLFilter/${CMAKE_BUILD_TYPE};\
+${CMAKE_BINARY_DIR}/ICLIO/${CMAKE_BUILD_TYPE};\
+${CMAKE_BINARY_DIR}/ICLQt/${CMAKE_BUILD_TYPE};\
+${CMAKE_BINARY_DIR}/ICLCV/${CMAKE_BUILD_TYPE};\
+${CMAKE_BINARY_DIR}/ICLGeom/${CMAKE_BUILD_TYPE};\
+${CMAKE_BINARY_DIR}/ICLMarkers/${CMAKE_BUILD_TYPE};\
+${CMAKE_BINARY_DIR}/ICLPhysics/${CMAKE_BUILD_TYPE};\
+${PTHREADS_pthreadVC2_LIBRARY};\
+$ENV{PATH}")
+      message("TEST_PATH: ${TEST_PATH}")
+      string(REPLACE "\\;" ";" TEST_PATH "${TEST_PATH}")  
+      string(REPLACE ";" "\\\;" TEST_PATH "${TEST_PATH}")
+      gtest_add_tests(TARGET ${TEST_TARGET_NAME} TEST_LIST LIST_OF_TESTS)
+      set_tests_properties(${LIST_OF_TESTS} PROPERTIES ENVIRONMENT ${TEST_PATH})
+    elseif(CMAKE_VERSION VERSION_LESS 3.10.0)
+      # use old style fallback as new style has policy issue under Linux
+      gtest_add_tests(${TEST_TARGET_NAME} "" AUTO)
+    else()
+      # use discover_tests whenever possible
+      gtest_discover_tests(${TEST_TARGET_NAME} TEST_PREFIX ${library_lower})
+    endif(WIN32)
     add_dependencies(tests ${TEST_TARGET_NAME})
 
     #SETUP_TARGET_FOR_COVERAGE(NAME coverage_${library_lower}
